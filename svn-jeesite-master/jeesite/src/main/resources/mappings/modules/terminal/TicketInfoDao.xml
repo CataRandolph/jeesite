@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.thinkgem.jeesite.modules.terminal.dao.TicketInfoDao">
+    
+	<sql id="ticketInfoColumns">
+		a.RecID AS "recID",
+		a.BillOrder AS "billOrder",
+		a.BillMulti AS "billMulti",
+		a.BillMoeny AS "billMoeny",
+		a.BillTime AS "billTime",
+		a.BillChip AS "billChip",
+		a.BillIssue AS "billIssue",
+		a.MacID AS "macID",
+		a.OptId AS "orderID",
+		b.OrderID AS "ordersID",
+		a.LotID AS "lotID",
+		a.TaskID AS "taskID",
+		a.IsWinPrize AS "isWinPrize",
+		a.IsCashPrize AS "isCashPrize",
+		a.CashPrizeMoney AS "cashPrizeMoney",
+		a.CalcPrizeMoney AS "calcPrizeMoney",
+		a.CashPrizeTime AS "cashPrizeTime",
+		a.CalcPrizeTime AS "calcPrizeTime",
+		v.LotName AS "lotName"
+	</sql>
+    
+	<select id="get" resultType="TicketInfo">
+		SELECT 
+			<include refid="ticketInfoColumns"/>
+		FROM Mac_LotBillRec a
+		WHERE a.RecID = #{id}
+	</select>
+	
+	<select id="findList" resultType="TicketInfo">
+		SELECT 
+			<include refid="ticketInfoColumns"/>
+		FROM Mac_LotBillRec a
+		INNER JOIN Mac_LotView v
+		with (nolock)
+		ON(a.LotID = v.LotID)
+		INNER JOIN Bill_Project b
+		with (nolock)
+		ON(a.OptId = b.OptId)
+		WHERE 1=1
+		<if test="billOrder != null and billOrder != ''">
+			AND a.BillOrder LIKE '%'+#{billOrder}+'%'
+		</if>
+		<if test="macID != null and macID != ''">
+			AND a.MacID = #{macID}
+		</if>
+		<if test="lotName != null and lotName !=''">
+			AND v.LotName = #{lotName}
+		</if>
+		<if test="optId != null and optId != ''">
+			AND a.OptId =#{optId}
+		</if>
+		<if test=" timeType==0 and beginDates!= null and beginDates !=''">
+			AND a.BillTime > #{beginDates}
+		</if>
+		<if test=" timeType==0 and endDates != null and endDates !=''">
+			<![CDATA[
+		       AND a.BillTime < #{endDates}
+            ]]>
+		</if>
+		<if test=" timeType==0 and beginDate!= null and beginDate !=''">
+			AND a.BillTime > #{beginDate}
+		</if>
+		<if test=" timeType==0 and endDate != null and endDate !=''">
+			<![CDATA[
+		      AND a.BillTime < #{endDate}
+		    ]]>
+		</if>
+		<if test=" timeType==1 and beginDate!= null and beginDate !=''">
+			AND a.CashPrizeTime > #{beginDate}
+		</if>
+		<if test=" timeType==1 and endDate != null and endDate !=''">
+			<![CDATA[
+			AND a.CashPrizeTime < #{endDate}
+			]]>
+		</if>
+		<if test=" timeType==2 and beginDate!= null and beginDate !=''">
+			AND a.CalcPrizeTime > #{beginDate}
+		</if>
+		<if test=" timeType==2 and endDate != null and endDate !=''">
+			<![CDATA[
+			AND a.CalcPrizeTime < #{endDate}
+			]]>
+		</if>
+		<if test="isWinPrize == 0 or isWinPrize != null and isWinPrize != ''">
+			AND a.IsWinPrize = #{isWinPrize}
+		</if>
+		ORDER BY a.BillTime DESC
+	</select>
+</mapper>

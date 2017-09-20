@@ -1,0 +1,70 @@
+
+package com.thinkgem.jeesite.modules.terminal.web;
+
+import com.thinkgem.jeesite.common.persistence.Page;
+import com.thinkgem.jeesite.common.utils.StringUtils;
+import com.thinkgem.jeesite.common.web.BaseController;
+import com.thinkgem.jeesite.modules.terminal.entity.BillTaskInfo;
+import com.thinkgem.jeesite.modules.terminal.entity.ExchangeAward;
+import com.thinkgem.jeesite.modules.terminal.service.BillTaskInfoService;
+import com.thinkgem.jeesite.modules.terminal.service.ExchangeAwardService;
+import com.thinkgem.jeesite.modules.terminal.service.MacManageService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.text.SimpleDateFormat;
+
+/**
+ * 订单任务信息Controller
+ * @author Matthew
+ * @version 2017-08-04
+ */
+@Controller
+@RequestMapping(value = "${adminPath}/terminal/task")
+public class BillTaskInfoController extends BaseController {
+
+	SimpleDateFormat sdf = new SimpleDateFormat("yyyy_MM_dd-HH_mm_ss");
+
+	@Autowired
+	private BillTaskInfoService service;
+
+	@Autowired
+	private ExchangeAwardService exchangeAwardService;
+
+	@Autowired
+	private MacManageService macManageService;
+	
+	@ModelAttribute
+	public BillTaskInfo get(@RequestParam(required=false) String id) {
+		BillTaskInfo entity = null;
+		if (StringUtils.isNotBlank(id)){
+			entity = service.getTask(id);
+		}
+		if (entity == null){
+			entity = new BillTaskInfo();
+		}
+		return entity;
+	}
+	
+	@RequestMapping(value = {"list", ""})
+	public String list(BillTaskInfo billTaskInfo, HttpServletRequest request, HttpServletResponse response, Model model) {
+		String flag= request.getParameter("flag");
+		if(null==flag){
+			billTaskInfo = new BillTaskInfo();
+			billTaskInfo.setTimeType(2);
+		}
+		Page<BillTaskInfo> page = service.find(new Page<BillTaskInfo>(request, response), billTaskInfo);
+		ExchangeAward macs = new ExchangeAward();
+		macs.setLotNameList(exchangeAwardService.byLotName());
+		macs.setMacIdList(macManageService.byMacId());
+		model.addAttribute("macs",macs);
+		model.addAttribute("page", page);
+		return "modules/terminal/billTaskInfoList";
+	}
+
+}

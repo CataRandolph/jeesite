@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.thinkgem.jeesite.modules.terminal.dao.MacManageRecordDao">
+
+
+<!--
+    <insert id="insert" parameterType="MacManageRecord">
+         INSERT INTO Mac_ManageRecord
+            (MacID,RecordDate,TodayChipCount,TodayChipMoney,Money,UpdateTime,CreateTime)
+            VALUES (#{macId},#{recordDate},#{todayChipCount},#{todayChipMoney},#{money},#{updateTime},#{createTime})
+    </insert>
+-->
+
+    <insert id="insertRecord" useGeneratedKeys="true" keyProperty="id">
+        <![CDATA[
+        INSERT INTO
+        Mac_ManageRecord
+        (MacID,RecordDate,TodayChipCount,TodayChipMoney,Money,UpdateTime,CreateTime)
+        (SELECT
+        MacID as macId,GETDATE() as recordDate,TodayChipCount as todayChipCount,
+        TodayChipMoney as todayChipMoney,Money as money, UpdateTime as updateTime,CreateTime as createTime
+        FROM Mac_Manage with (nolock) WHERE  TodayChipCount <> 0 or TodayChipMoney <> 0)
+        ]]>
+    </insert>
+
+</mapper>

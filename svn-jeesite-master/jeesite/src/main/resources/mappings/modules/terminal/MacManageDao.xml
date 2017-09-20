@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.thinkgem.jeesite.modules.terminal.dao.MacManageDao">
+
+
+    <select id="findList" resultType="MacManage" parameterType="MacManage">
+        SELECT
+        a.MacID,
+        a.UpdateTime as updateTime,
+        a.Money as money,
+        a.WarningMoney as warningMoney,
+        a.MacStatus as macStatus,
+        a.isEnable as isEnable,
+        a.NotFinishCount as notFinishCount,
+        a.TodayChipCount as ticketQuantity,
+        a.ToDayChipMoney as totalAmount,
+        a.ChipCountLimit as chipCountLimit,
+        (SELECT f.LotName+' '
+        FROM Mac_MacLottery v with (nolock)
+        left JOIN Mac_LotView f with (nolock)
+        on v.LotID=f.LotID
+        where v.MacID = a.MacID
+        FOR XML PATH('')
+        ) as lotName
+        FROM
+        Mac_Manage a with (nolock)
+        WHERE 1=1
+        <if test="macId != null and macId !=''">
+            AND a.MacID = #{macId}
+        </if>
+        <if test="macStatus != null and macStatus !=''">
+            AND a.MacStatus =#{macStatus}
+        </if>
+        GROUP BY a.MacID,a.UpdateTime,a.Money,a.WarningMoney,a.MacStatus,a.isEnable,a.TodayChipCount,a.ToDayChipMoney,a.ChipCountLimit,a.NotFinishCount
+        <choose>
+            <when test="orderBy != null and orderBy != ''">
+                ORDER BY ${orderBy}
+            </when>
+            <otherwise>
+                ORDER BY a.MacID asc
+            </otherwise>
+        </choose>
+    </select>
+
+
+    <select id="get" resultType="MacManage" parameterType="String">
+        SELECT
+        a.id,
+        a.MacID,
+        a.UpdateTime as updateTime,
+        a.Money as money,
+        a.WarningMoney as warningMoney,
+        a.MacStatus as macStatus,
+        a.isEnable as isEnable,
+        a.NotFinishCount as notFinishCount,
+        a.TodayChipCount as ticketQuantity,
+        a.ToDayChipMoney as totalAmount,
+        a.ChipCountLimit as chipCountLimit,
+        (SELECT f.LotName+' '
+        FROM Mac_MacLottery v with (nolock)
+        left JOIN Mac_LotView f with (nolock)
+        on v.LotID=f.LotID
+        where v.MacID = a.MacID
+        FOR XML PATH('')
+        ) as lotName
+        FROM
+        Mac_Manage a with (nolock)
+        WHERE a.MacID = #{macId}
+        GROUP BY a.id,a.MacID,a.UpdateTime,a.Money,a.WarningMoney,a.MacStatus,a.isEnable,a.TodayChipCount,a.ToDayChipMoney,a.ChipCountLimit,a.NotFinishCount
+	</select>
+
+    <update id="update" parameterType="MacManage">
+		UPDATE Mac_Manage SET
+		 MacID = #{macId},
+		 Money = #{money},
+		 WarningMoney = #{warningMoney},
+		 MacStatus = #{macStatus},
+		 isEnable = #{isEnable},
+		 ChipCountLimit = #{chipCountLimit},
+		 NotFinishCount =#{notFinishCount}
+		WHERE id =#{id}
+	</update>
+
+    <update id="updateMoney" parameterType="MacManage" useGeneratedKeys="true" keyProperty="id">
+        UPDATE Mac_Manage SET
+        Money = #{money}
+        WHERE MacID = #{macId}
+    </update>
+
+    <insert id="insert" parameterType="MacManage">
+        INSERT INTO Mac_Manage (MacID,CreateTime,UpdateTime,Money,WarningMoney,MacStatus,isEnable,ChipCountLimit,NotFinishCount)
+        VALUES (#{macId},#{createTime},#{updateTime},#{money},#{warningMoney},#{macStatus},#{isEnable},#{chipCountLimit},#{notFinishCount})
+    </insert>
+
+    <delete id="delete" parameterType="MacManage">
+      DELETE FROM Mac_Manage WHERE MacID = #{macId}
+    </delete>
+
+    <update id="updateRestRecord" useGeneratedKeys="true" keyProperty="id">
+        <![CDATA[
+         UPDATE Mac_Manage SET TodayChipCount = 0,ToDayChipMoney = 0  WHERE TodayChipCount <> 0 or TodayChipMoney <> 0
+        ]]>
+    </update>
+
+
+    <select id="byMacId" resultType="String">
+        SELECT macID FROM Mac_Manage with (nolock)
+    </select>
+
+</mapper>

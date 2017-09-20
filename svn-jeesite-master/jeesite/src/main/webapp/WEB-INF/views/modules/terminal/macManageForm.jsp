@@ -1,0 +1,240 @@
+<%@ page contentType="text/html;charset=UTF-8" %>
+<%@ include file="/WEB-INF/views/include/taglib.jsp" %>
+<html>
+<head>
+    <title>票机监控</title>
+    <meta name="decorator" content="default"/>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $("#name").focus();
+            $("#inputForm").validate({
+                rules: {//验证规则
+                    'macId': {
+                        'remote': {
+                            url: '${ctx}/terminal/manage/check',
+                            data: {
+                                macId: function () {
+                                    return $("#macId").val();
+                                },
+                                type: function () {
+                                    return $("#type").val();
+                                }
+                            }
+                        }
+                    },
+                    chipCountLimit: {
+                        required: true,
+                        maxlength: 10
+                    },
+                    money: {
+                        required: true,
+                        maxlength: 13
+                    },
+                    notFinishCount: {
+                        required: true,
+                        maxlength: 9
+                    },
+                    warningMoney: {
+                        required: true,
+                        maxlength: 13
+                    }
+                },
+                messages: {//错误消息
+                    macId: {
+                        remote: "票机编号已存在"
+                    },
+                    chipCountLimit: {
+                        required: "必填信息！",
+                        maxlength: "确认不能超过8个字符"
+                    },
+                    money: {
+                        required: "必填信息！",
+                        maxlength: "确认不能超过10个字符"
+                    },
+                    notFinishCount: {
+                        required: "必填信息！",
+                        maxlength: "确认不能超过9个字符"
+                    },
+                    warningMoney: {
+                        required: "必填信息！",
+                        maxlength: "确认不能超过10个字符"
+                    }
+                },
+                submitHandler: function (form) {
+                    loading('正在提交，请稍等...');
+                    form.submit();
+                },
+                errorContainer: "#messageBox",
+                errorPlacement: function (error, element) {
+                    $("#messageBox").text("输入有误，请先更正。");
+                    if (element.is(":checkbox") || element.is(":radio") || element.parent().is(".input-append")) {
+                        error.appendTo(element.parent().parent());
+                    } else {
+                        error.insertAfter(element);
+                    }
+                }
+            });
+
+            //全选
+            $("#btnAllChk").click(function () {
+                $(".MinPrice").each(function () {
+                    $(this).prev('input').attr("checked", "checked")
+                })
+            });
+
+            //全不选
+            $("#btnAllNotChk").click(function () {
+                $(".MinPrice").each(function () {
+                    $(this).prev('input').removeAttr("checked")
+                })
+            });
+
+            $("#btnInvert").click(function () {
+                $(".MinPrice").each(function () {
+                    if ($(this).prev('input').attr("checked")) {
+                        $(this).prev('input').attr("checked", false);
+                    } else {
+                        $(this).prev('input').attr("checked", "checked");
+                    }
+
+                });
+            });
+        });
+
+    </script>
+</head>
+<body>
+
+<ul class="nav nav-tabs">
+    <li><a href="${ctx}/terminal/manage/">票机监控</a></li>
+    <li class="active"><a href="${ctx}/terminal/manage/save?type=${type}">票机${not empty type?'修改':'添加'}</a></li>
+</ul>
+<br/>
+<form:form id="inputForm" modelAttribute="macManage" action="${ctx}/terminal/manage/save" method="post"
+           class="form-horizontal">
+    <input type="hidden" id="type" name="type" value="${type}">
+    <input type="hidden" id="lotNameList" value="${macManage.lotName}">
+    <sys:message content="${message}"/>
+
+    <div class="control-group">
+        <label class="control-label">票机编号:</label>
+        <div class="controls">
+            <c:choose>
+                <c:when test="${type == null}">
+                    <form:input path="macId" htmlEscape="false" maxlength="10" class="required"/>
+                </c:when>
+                <c:otherwise>
+                    <form:input path="macId" readonly="true" htmlEscape="false" class="required"/>
+                </c:otherwise>
+            </c:choose>
+
+            <form:hidden path="id" htmlEscape="false" maxlength="255" class="input-xlarge"/>
+        </div>
+    </div>
+
+    <div class="control-group">
+        <label class="control-label">票机属性:</label>
+        <div class="controls">
+            <form:select path="isEnable" class="input-medium required">
+                <form:option value="" label=""/>
+                <form:options items="${fns:getDictList('mac_manage_type_child')}" itemLabel="label" itemValue="value"
+                              htmlEscape="false"/>
+            </form:select>
+        </div>
+    </div>
+
+    <div class="control-group">
+        <label class="control-label">票机运行状态:</label>
+        <div class="controls">
+            <form:select path="macStatus" class="input-medium required">
+                <form:option value="" label=""/>
+                <form:options items="${fns:getDictList('mac_manage_type')}" itemLabel="label" itemValue="value"
+                              htmlEscape="false"/>
+            </form:select>
+        </div>
+    </div>
+
+    <div class="control-group">
+        <label class="control-label">当日打票张数:</label>
+        <div class="controls">
+            <form:input disabled="true" path="ticketQuantity" htmlEscape="false" maxlength="50" class="required"/>
+        </div>
+    </div>
+
+    <div class="control-group">
+        <label class="control-label">当日票机限制张数:</label>
+        <div class="controls">
+            <input type="text" class="required digits" name="chipCountLimit"
+                   value="${macManage.chipCountLimit == null ? 0 : macManage.chipCountLimit}">
+        </div>
+    </div>
+
+    <div class="control-group">
+        <label class="control-label">当日打票金额:</label>
+        <div class="controls">
+            <input type="text" class="required" disabled="disabled" name="totalAmount"
+                   value="${macManage.totalAmount == null ? 0 : macManage.totalAmount}">
+        </div>
+    </div>
+
+
+    <div class="control-group">
+        <label class="control-label">票机理论余额:</label>
+        <div class="controls">
+            <form:input path="money" htmlEscape="false" class="required number"/>
+        </div>
+    </div>
+
+    <div class="control-group">
+        <label class="control-label">待出票数:</label>
+        <div class="controls">
+            <form:input path="notFinishCount" htmlEscape="false" class="required number"/>
+        </div>
+    </div>
+
+
+    <div class="control-group">
+        <label class="control-label">票机预警金额:</label>
+        <div class="controls">
+            <form:input path="warningMoney" htmlEscape="false" class="required number"/>
+            <span class="help-inline">金额请填数字类型</span>
+        </div>
+    </div>
+
+    <div class="control-group">
+        <label class="control-label">可售彩种:</label>
+        <div class="controls">
+                <%--  <form:checkboxes items="${lotList}" path="lotValue" itemValue="lotId" />--%>
+            <c:forEach items="${lotList}" var="l">
+                <input type="checkbox" id="lotNames" name="lotNames" value="${l.lotId}"/>
+                <label class="MinPrice" name="lotValues">${l.lotValue}</label>
+            </c:forEach>
+        </div>
+        <div class="controls">
+            <input id="btnAllChk" class="btn btn-mini btn-success" type="button" value="全选"/>
+            <input id="btnAllNotChk" class="btn btn-mini btn-danger" type="button" value="全不选"/>
+            <input id="btnInvert" class="btn btn-mini btn-inverse" type="button" value="反选"/>
+
+        </div>
+    </div>
+
+    <div class="form-actions">
+        <input id="btnSubmit" class="btn btn-primary" type="submit" value="保 存"/>
+        <input id="btnCancel" class="btn" type="button" value="返 回" onclick="history.go(-1)"/>
+    </div>
+</form:form>
+<script type="text/javascript">
+    $(document).ready(function () {
+        var lotNames = $("#lotNameList").val().split(" ");
+        $(".MinPrice").each(function () {
+            var th = $(this).html();
+            for (var i = 0; i < lotNames.length; i++) {
+                if (th == lotNames[i])
+                    $(this).prev('input').attr("checked", "checked")
+            }
+        })
+    });
+</script>
+</body>
+
+</html>

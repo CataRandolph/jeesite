@@ -1,0 +1,10 @@
+package com.thinkgem.jeesite.test;
+
+import com.thinkgem.jeesite.modules.terminal.service.TicketInfoServiceImpl;
+
+public class Test {
+
+	public static void main(String[] args) {
+		TicketInfoServiceImpl ticketInfoService =new TicketInfoServiceImpl();
+	}
+}

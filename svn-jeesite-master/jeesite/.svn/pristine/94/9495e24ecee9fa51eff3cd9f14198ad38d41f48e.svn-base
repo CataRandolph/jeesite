@@ -1,0 +1,102 @@
+<%@ page contentType="text/html;charset=UTF-8" %>
+<%@ include file="/WEB-INF/views/include/taglib.jsp" %>
+<html>
+<head>
+    <title>财务信息</title>
+    <meta name="decorator" content="default"/>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $("#correctData").click(function () {
+                var macId = $('#macId option:selected').val();
+                if (macId.length == 0 || macId == '' || macId == null) {
+                    return alert("票机编号不能为空");
+                }
+                $("#searchForm").attr("action", "${ctx}/terminal/financeInfo/correct");
+                $("#searchForm").submit();
+            })
+        });
+        function page(n, s) {
+            $("#pageNo").val(n);
+            $("#pageSize").val(s);
+            $("#searchForm").submit();
+            return false;
+        }
+    </script>
+</head>
+<body>
+<ul class="nav nav-tabs">
+    <li class="active"><a href="${ctx}/terminal/financeInfo/">财务信息列表</a></li>
+    <%--  <li><a href="${ctx}/terminal/financeInfo/form">数据修正</a></li>--%>
+</ul>
+
+<form:form id="searchForm" action="${ctx}/terminal/financeInfo/" method="post" class="breadcrumb form-search"
+           commandName="financeInfo">
+    <input id="pageNo" name="pageNo" type="hidden" value="1"/>
+    <input id="pageSize" name="pageSize" type="hidden" value="${page.pageSize}"/>
+    <div>
+
+        <label>票机编号：</label>
+        <select name="macId" id="macId" class="input-medium">
+            <option value="" selected>全部</option>
+            <c:forEach items="${macs.macIdList}" var="stu">
+                <option value="${stu}" <c:if test="${macId == stu}">selected</c:if>>${stu}</option>
+            </c:forEach>
+        </select>
+
+        <label>流水类型：</label>
+        <form:select path="correctType" class="input-medium">
+            <form:option value="" label=""/>
+            <option value="" selected>全部</option>
+            <form:options items="${fns:getDictList('correctType')}" itemLabel="label" itemValue="value"
+                          htmlEscape="false"/>
+        </form:select>
+
+        <label>时间：</label>
+        <input id="beginDate" name="beginDate" type="text" readonly="readonly" maxlength="20" class="input-medium Wdate"
+               style="width:163px;"
+               value="<fmt:formatDate value="${financeInfo.beginDate}" pattern="yyyy-MM-dd HH:mm:ss"/>"
+               onclick="WdatePicker({dateFmt:'yyyy-MM-dd HH:mm:ss'});"/>
+        　--　
+        <input id="endDate" name="endDate" type="text" readonly="readonly" maxlength="20" class="input-medium Wdate"
+               style="width:163px;"
+               value="<fmt:formatDate value="${financeInfo.endDate}" pattern="yyyy-MM-dd HH:mm:ss"/>"
+               onclick="WdatePicker({dateFmt:'yyyy-MM-dd HH:mm:ss'});"/>
+        &nbsp;&nbsp;
+        <input id="btnSubmit" class="btn btn-primary" type="submit" value="查询"/>
+        <input id="correctData" class="btn btn-primary" type="button" value="数据修正"/>
+    </div>
+</form:form>
+<sys:message content="${message}"/>
+<table id="contentTable" class="table table-striped table-bordered table-condensed">
+    <thead>
+    <tr>
+        <th>流水编号</th>
+        <th>票机编号</th>
+        <th>流水类型</th>
+        <th>发生金额</th>
+        <th>变化前金额</th>
+        <th>当前余额</th>
+        <th>添加时间</th>
+        <th>备注</th>
+    </thead>
+    <tbody><%
+        request.setAttribute("strEnter", "\n");
+        request.setAttribute("strTab", "\t");
+    %>
+    <c:forEach items="${page.list}" var="financeInfo">
+        <tr>
+            <td>${financeInfo.id}</td>
+            <td>${financeInfo.macId}</td>
+            <td>${fns:getDictLabels(financeInfo.correctType, 'correctType', '')}</td>
+            <td>${financeInfo.aroseMoney}</td>
+            <td>${financeInfo.beforeMoney}</td>
+            <td>${financeInfo.currentBalance}</td>
+            <td><fmt:formatDate value="${financeInfo.addTime}" type="both"/></td>
+            <td>${financeInfo.remarks}</td>
+        </tr>
+    </c:forEach>
+    </tbody>
+</table>
+<div class="pagination">${page}</div>
+</body>
+</html>

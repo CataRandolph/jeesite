@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.thinkgem.jeesite.modules.terminal.dao.ExchangeAwardDao">
+    <select id="findList" resultType="ExchangeAward" parameterType="ExchangeAward">
+        SELECT
+        c.MacID as macId,
+        c.recID as recID,
+        c.billIssue as billIssue,
+        c.billTime as billTime,
+        c.billMoeny as billMoeny,
+        c.isCashPrize as isCashPrize,
+        c.isWinPrize as isWinPrize,
+        c.cashPrizeMoney as cashPrizeMoney,
+        c.calcPrizeMoney as calcPrizeMoney,
+        c.cashPrizeTime as cashPrizeTime,
+        c.calcPrizeTime as calcPrizeTime,
+        c.isBigPrize as isBigPrize,
+        c.OptId as optId,
+        b.OrderID as orderID,
+        c.billChipBon as billChipBon,
+        v.LotName as lotName
+        FROM Mac_LotBillRec c
+        INNER JOIN Mac_LotView v
+        with (nolock)
+        ON(c.LotID = v.LotID)
+        INNER JOIN Bill_Project b
+        with (nolock)
+        ON(c.OptId = b.OptId)
+        WHERE 1 = 1
+        <if test="macId != null and macId !=''">
+            AND c.MacID = #{macId}
+        </if>
+        <if test="isBigPrize != null and isBigPrize !=''">
+            AND c.isBigPrize = #{isBigPrize}
+        </if>
+        <if test="lotName != null and lotName !=''">
+            AND v.LotName = #{lotName}
+        </if>
+        <if test="optId != null and optId !=''">
+            AND c.OptId = #{optId}
+        </if>
+        <if test="isCashPrize == 0 or isCashPrize != null and isCashPrize !=''">
+            and c.isCashPrize = #{isCashPrize}
+        </if>
+        <if test="isWinPrize == 0 or isWinPrize != null and isWinPrize !=''">
+            and c.isWinPrize = #{isWinPrize}
+        </if>
+        <if test="type != null and type !='' and type == 1">
+            <if test="beginDate != null and beginDate !=''">
+                <![CDATA[ AND c.cashPrizeTime >= #{beginDate}]]>
+            </if>
+            <if test="endDate != null and endDate !='' ">
+                <![CDATA[ AND c.cashPrizeTime < #{endDate} ]]>
+            </if>
+            <if test="beginDates != null and beginDates !='' and endDates != null and endDates !='' ">
+                <![CDATA[ AND c.cashPrizeTime >= #{beginDates} and c.cashPrizeTime < #{endDates}
+                          and c.isWinPrize = 1 ]]>
+            </if>
+        </if>
+        <if test="type != null and type !='' and type == 2">
+            <if test="beginDate != null and beginDate !=''">
+                <![CDATA[ AND c.calcPrizeTime >= #{beginDate} ]]>
+            </if>
+            <if test="endDate != null and endDate !='' ">
+                <![CDATA[ AND c.calcPrizeTime < #{endDate} ]]>
+            </if>
+        </if>
+        <if test="billChipBon != null and billChipBon !=''">
+            AND c.billChipBon LIKE '%${billChipBon}%'
+        </if>
+        ORDER BY c.cashPrizeTime DESC
+    </select>
+    
+    <select id="byLotName" resultType="String">
+        SELECT lotName FROM Mac_LotView
+    </select>
+
+</mapper>

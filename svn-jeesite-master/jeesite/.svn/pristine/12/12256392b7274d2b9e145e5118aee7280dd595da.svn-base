@@ -1,0 +1,145 @@
+<%@ page contentType="text/html;charset=UTF-8" %>
+<%@ include file="/WEB-INF/views/include/taglib.jsp"%>
+<html>
+<head>
+	<title>出票管理</title>
+	<meta name="decorator" content="default"/>
+	<script type="text/javascript">
+		$(document).ready(function() {
+			
+		});
+		function page(n,s){
+			$("#pageNo").val(n);
+			$("#pageSize").val(s);
+			$("#searchForm").submit();
+        	return false;
+        }
+        function exportExcel(){
+            document.searchForm.action="${ctx}/terminal/ticket/export";
+            document.searchForm.submit();
+            document.searchForm.action="${ctx}/terminal/ticket/";
+//            var billOrder = $("#billOrderId").val();
+//            var isWinPrize = $("#isWinPrizeId").val();
+            <%--$.ajax({--%>
+                <%--cache: true,--%>
+                <%--type: "POST",--%>
+                <%--url:"${ctx}/terminal/ticket/export",--%>
+                <%--data:{billOrder:billOrder,isWinPrize:isWinPrize},// 你的formid--%>
+                <%--async: false,--%>
+                <%--error: function(request) {--%>
+                    <%--alert("导出失败！");--%>
+                <%--},--%>
+                <%--success: function(data) {--%>
+                    <%--alert("导出成功！");--%>
+                <%--}--%>
+            <%--});--%>
+
+        }
+	</script>
+</head>
+<body>
+<ul class="nav nav-tabs">
+	<li class="active"><a href="${ctx}/terminal/ticket/">出票列表</a></li>
+</ul>
+	<form:form id="searchForm" name="searchForm" modelAttribute="ticketInfo" action="${ctx}/terminal/ticket" method="post" class="breadcrumb form-search">
+		<input id="pageNo" name="pageNo" type="hidden" value="1"/>
+		<input id="pageSize" name="pageSize" type="hidden" value="${page.pageSize}"/>
+		<div class="col-md-10">
+			<li>
+				<label>票机编号：</label>
+				<select name="macID" class="input-medium">
+					<option value="">全部</option>
+					<c:forEach items="${macs.macIdList}" var="stu">
+						<option value="${stu}" <c:if test="${ticketInfo.macID == stu}">selected</c:if>>${stu}</option>
+					</c:forEach>
+				</select>
+				<label>方案号：</label>
+				<form:input id="optId" path="optId" htmlEscape="false" maxlength="100" class="input-mini"/>
+				<label>中奖状态：</label>
+				<form:select id="isWinPrizeId" path="isWinPrize" class="input-mini">
+					<form:option value="" label=""/>
+					<option value="" selected>全部</option>
+					<form:options items="${fns:getDictList('isWinPrize')}" itemLabel="label" itemValue="value" htmlEscape="false"/>
+				</form:select>
+				<label>
+					<label>彩种：</label>
+					<select name="lotName" class="input-medium">
+						<option value="" selected>全部</option>
+						<c:forEach items="${macs.lotNameList}" var="stu">
+							<option value="${stu}" <c:if test="${ticketInfo.lotName == stu}">selected</c:if>>${stu}</option>
+						</c:forEach>
+					</select>
+				</label>
+			</li>
+		</div>
+	    <div class="col-md-10">
+			<br>
+			<li>
+				<label>
+					<select name="timeType" class="input-medium">
+						<option value="0"<c:if test="${ticketInfo.timeType == 0}">selected</c:if>>交易时间</option>
+						<option value="1"<c:if test="${ticketInfo.timeType == 1}">selected</c:if>>兑奖时间</option>
+						<option value="2"<c:if test="${ticketInfo.timeType == 2}">selected</c:if>>计奖时间</option>
+					</select>
+					：
+					<input id="beginDate" placeholder="开始日期" name="beginDate" type="text" readonly="readonly" maxlength="20" class="input-medium Wdate"
+						   style="width:163px; background-color:#fff"
+						   value="<fmt:formatDate value="${ticketInfo.beginDate}" pattern="yyyy-MM-dd HH:mm:ss"/>"
+						   onclick="WdatePicker({dateFmt:'yyyy-MM-dd HH:mm:ss'});"/>
+					　--　
+					<input id="endDate"  placeholder="结束日期" name="endDate" type="text" readonly="readonly" maxlength="20" class="input-medium Wdate"
+						   style="width:163px; background-color:#fff"
+						   value="<fmt:formatDate value="${ticketInfo.endDate}" pattern="yyyy-MM-dd HH:mm:ss"/>"
+						   onclick="WdatePicker({dateFmt:'yyyy-MM-dd HH:mm:ss'});"/>
+				</label>
+
+				<input id="btnSubmit" class="btn btn-primary" type="submit" value="查询"/>&nbsp;&nbsp;&nbsp;&nbsp;
+				<input id="export" onclick="exportExcel()" class="btn btn-primary" type="button" value="导出"/>
+			</li></br>
+		</div>
+	</form:form>
+	<sys:message content="${message}"/>
+	<table id="contentTable" style="TABLE-LAYOUT: fixed" class="table table-striped table-bordered table-condensed">
+		<thead>
+			<tr>
+				<%--<th style="text-align: center;">票号</th>--%>
+				<th style="text-align: center;">票机编号</th>
+				<th style="text-align: center;">方案号</th>
+				<th style="text-align: center;">任务号</th>
+				<th style="text-align: center;">交易金额</th>
+				<th style="text-align: center;">倍数</th>
+				<th style="text-align: center;">出票时间</th>
+				<th style="text-align: center;">出票彩期</th>
+				<th style="text-align: center;">彩种</th>
+				<th style="text-align: center;">中奖状态</th>
+				<th style="text-align: center;">兑奖金额</th>
+				<th style="text-align: center;">计奖金额</th>
+				<th style="text-align: center;">兑奖时间</th>
+				<th style="text-align: center;">计奖时间</th>
+				<th style="text-align: center;" width="200">彩票内容</th>
+			</tr>
+		</thead>
+		<tbody>
+		<c:forEach items="${page.list}" var="ticket">
+			<tr>
+				<td style="text-align: center;">${ticket.macID}</td>
+				<td style="text-align: center;">${ticket.orderID}</td>
+				<td style="text-align: center;">${ticket.taskID}</td>
+				<td style="text-align: center;">${ticket.billMoeny}</td>
+				<td style="text-align: center;">${ticket.billMulti}</td>
+				<td style="text-align: center;">${ticket.billTimeStr}</td>
+				<td style="text-align: center;">${ticket.billIssue}</td>
+				<td style="text-align: center;">${ticket.lotName}</td>
+				<td style="text-align: center;">${ticket.isWinPrizeStr}</td>
+				<td style="text-align: center;">${ticket.cashPrizeMoney}</td>
+				<td style="text-align: center;">${ticket.calcPrizeMoney}</td>
+				<td style="text-align: center;">${ticket.cashPrizeTimeStr}</td>
+				<td style="text-align: center;">${ticket.calcPrizeTimeStr}</td>
+				<td style="text-align: left;WORD-WRAP: break-word">${ticket.billChip}</td>
+			</tr>
+		</c:forEach>
+		</tbody>
+	</table>
+	<div class="pagination">${page}</div>
+</body>
+</html>

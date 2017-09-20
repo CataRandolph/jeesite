@@ -1,0 +1,175 @@
+<%@ page contentType="text/html;charset=UTF-8" %>
+<%@ include file="/WEB-INF/views/include/taglib.jsp" %>
+<html>
+<head>
+    <title>兑奖管理</title>
+    <meta name="decorator" content="default"/>
+    <script type="text/javascript">
+        function page(n, s) {
+            $("#pageNo").val(n);
+            $("#pageSize").val(s);
+            $("#searchForm").submit();
+            return false;
+        }
+        function exportExcel() {
+            document.searchForm.action = "${ctx}/terminal/exchangeAward/export";
+            document.searchForm.submit();
+            document.searchForm.action = "${ctx}/terminal/exchangeAward/";
+        }
+    </script>
+</head>
+<body>
+<ul class="nav nav-tabs">
+    <li class="active"><a href="${ctx}/terminal/exchangeAward/">兑奖列表</a></li>
+</ul>
+
+<form:form id="searchForm" name="searchForm" action="${ctx}/terminal/exchangeAward/" method="post"
+           class="breadcrumb form-search"
+           modelAttribute="exchangeAward">
+    <input id="pageNo" name="pageNo" type="hidden" value="1"/>
+    <input id="pageSize" name="pageSize" type="hidden" value="${page.pageSize}"/>
+    <div class="col-md-10">
+
+        <label>票机编号：</label>
+        <select name="macId" class="input-medium">
+            <option value="">全部</option>
+            <c:forEach items="${macs.macIdList}" var="stu">
+                <option value="${stu}" <c:if test="${exchangeAward.macId == stu}">selected</c:if>>${stu}</option>
+            </c:forEach>
+        </select>
+        <label>方案号：</label>
+        <input id="optId" name="optId" type="text" maxlength="50" class="input-mini" value="${exchangeAward.optId}"/>
+        <label>彩种：</label>
+        <select name="lotName" class="input-medium">
+            <option value="" selected>全部</option>
+            <c:forEach items="${macs.lotNameList}" var="stu">
+                <option value="${stu}" <c:if test="${exchangeAward.lotName == stu}">selected</c:if>>${stu}</option>
+            </c:forEach>
+        </select>
+        <label>兑奖状态：</label>
+        <form:select path="isWinPrize" class="input-medium">
+            <form:option value="" label=""/>
+            <option value="" selected>全部</option>
+            <form:options items="${fns:getDictList('isWinPrize')}" itemLabel="label" itemValue="value"
+                          htmlEscape="false"/>
+        </form:select>
+
+        <label>是否兑奖：</label>
+        <form:select path="isCashPrize" class="input-medium">
+            <form:option value="" label=""/>
+            <option value="" selected>全部</option>
+            <form:options items="${fns:getDictList('isCashPrize')}" itemLabel="label" itemValue="value"
+                          htmlEscape="false"/>
+        </form:select>
+    </div>
+    <div class="col-md-10">
+        <br>
+
+        &nbsp;&nbsp;
+        <select name="type" class="input-medium">
+            <option value="1" <c:if test="${exchangeAward.type == 1}">selected</c:if>>兑奖时间</option>
+            <option value="2" <c:if test="${exchangeAward.type == 2}">selected</c:if>>计奖时间</option>
+        </select>
+        ：
+        <input id="beginDate" name="beginDate" type="text" readonly="readonly" maxlength="20" class="input-medium Wdate"
+               style="width:163px;"
+               value="<fmt:formatDate value="${exchangeAward.beginDate}" pattern="yyyy-MM-dd HH:mm:ss"/>"
+               onclick="WdatePicker({dateFmt:'yyyy-MM-dd HH:mm:ss'});"/>
+        　--　
+        <input id="endDate" name="endDate" type="text" readonly="readonly" maxlength="20" class="input-medium Wdate"
+               style="width:163px;"
+               value="<fmt:formatDate value="${exchangeAward.endDate}" pattern="yyyy-MM-dd HH:mm:ss"/>"
+               onclick="WdatePicker({dateFmt:'yyyy-MM-dd HH:mm:ss'});"/>
+        </label>
+
+        <label>场&nbsp;&nbsp;&nbsp;&nbsp;次：
+        </label><input id="billChipBon" name="billChipBon" type="text" maxlength="50" class="input-mini"
+                       value="${exchangeAward.billChipBon}"/>
+
+        &nbsp;&nbsp;
+        <label>大小奖：
+        </label>
+        <select name="isBigPrize" class="input-mini">
+            <option value="" >全部</option>
+            <option value="0" <c:if test="${exchangeAward.isBigPrize == 0}">selected</c:if>>小奖</option>
+            <option value="1" <c:if test="${exchangeAward.isBigPrize == 1}">selected</c:if>>大奖</option>
+        </select>
+        <input id="btnSubmit" class="btn btn-primary" type="submit" value="查询"/>&nbsp;&nbsp;&nbsp;&nbsp;
+        <input id="export" onclick="exportExcel()" class="btn btn-primary" type="button" value="导出"/>
+    </div>
+</form:form>
+<sys:message content="${message}"/>
+<table id="contentTable" class="table table-striped table-bordered table-condensed">
+    <thead>
+    <tr>
+        <th>票机编号</th>
+        <th>方案号</th>
+        <th>彩种</th>
+        <th>是否兑奖</th>
+        <th>状态</th>
+        <th>兑奖金额</th>
+        <th>计奖金额</th>
+        <th>大小奖</th>
+        <th>兑奖时间</th>
+        <th>计奖时间</th>
+        <th>投注结果</th>
+    </thead>
+    <tbody><%
+        request.setAttribute("strEnter", "\n");
+        request.setAttribute("strTab", "\t");
+    %>
+    <c:forEach items="${page.list}" var="mac">
+        <tr>
+            <td>${mac.macId}</td>
+                <%--方案号 --%>
+            <td>${mac.optId}</td>
+                <%-- 彩种--%>
+            <td>${mac.lotName}</td>
+                <%--兑奖状态 --%>
+            <td>${fns:getDictLabels(mac.isCashPrize, 'isCashPrize', '')}</td>
+
+                <%--中奖状态 --%>
+            <td>${fns:getDictLabels(mac.isWinPrize, 'isWinPrize', '')}</td>
+
+                <%--兑奖金额 --%>
+            <td>${mac.cashPrizeMoney}</td>
+
+                <%--计奖金额 --%>
+            <td>${mac.calcPrizeMoney}</td>
+                <%--大小奖 --%>
+            <c:choose>
+                <c:when test="${mac.isBigPrize ==1}">
+                    <td>大奖</td>
+                </c:when>
+                <c:otherwise>
+                    <td>小奖</td>
+                </c:otherwise>
+            </c:choose>
+                <%--兑奖时间--%>
+            <c:choose>
+                <c:when test="${mac.cashPrizeTime == 'Thu Jan 01 00:00:00 CST 1970'}">
+                    <td> </td>
+                </c:when>
+                <c:otherwise>
+                    <td><fmt:formatDate value="${mac.cashPrizeTime}" type="both"/></td>
+                </c:otherwise>
+            </c:choose>
+                <%--计奖时间--%>
+            <c:choose>
+                <c:when test="${mac.calcPrizeTime == 'Mon Jan 01 00:00:00 CST 1900'}">
+                    <td></td>
+                </c:when>
+                <c:otherwise>
+                    <td><fmt:formatDate value="${mac.calcPrizeTime}" type="both"/></td>
+                </c:otherwise>
+            </c:choose>
+                <%-- 场次 --%>
+            <td>${mac.billChipBon}</td>
+
+        </tr>
+    </c:forEach>
+    </tbody>
+</table>
+<div class="pagination">${page}</div>
+</body>
+</html>

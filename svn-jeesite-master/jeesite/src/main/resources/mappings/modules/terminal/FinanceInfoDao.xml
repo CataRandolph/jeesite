@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.thinkgem.jeesite.modules.terminal.dao.FinanceInfoDao">
+
+
+    <select id="findList" resultType="FinanceInfo" parameterType="FinanceInfo">
+        select id as id,
+        mac_id as macId,
+        arose_money as aroseMoney,
+        add_time as addTime,
+        before_moeny as beforeMoney,
+        remarks as remarks,
+        correct_type as correctType,
+        current_balance as currentBalance
+        from mac_finance_Info
+        with (nolock)
+        WHERE 1=1
+        <if test="macId != null and macId !=''">
+            AND mac_id = #{macId}
+        </if>
+        <if test="correctType != null and correctType !=''">
+            AND correct_type =#{correctType}
+        </if>
+        <if test="beginDate != null and beginDate !='' and endDate != null and endDate !='' ">
+            <![CDATA[ AND add_time >= #{beginDate} and add_time < #{endDate} ]]>
+        </if>
+        ORDER BY add_time DESC
+    </select>
+
+
+    <select id="get" resultType="FinanceInfo" parameterType="String">
+		SELECT MacID as macId,Money as beforeMoney
+		FROM Mac_Manage a with (nolock)
+		WHERE a.MacID = #{macId}
+	</select>
+
+    <insert id="insert" parameterType="FinanceInfo" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO mac_finance_Info (mac_id,arose_money,add_time,before_moeny,remarks,correct_type,current_balance)
+        VALUES (#{macId},#{aroseMoney},#{addTime},#{beforeMoney},#{remarks},#{correctType},#{currentBalance})
+    </insert>
+
+</mapper>

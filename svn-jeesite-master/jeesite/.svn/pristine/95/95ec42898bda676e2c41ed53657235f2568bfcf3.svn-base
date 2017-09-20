@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.thinkgem.jeesite.modules.thirdparty.dal.SaleProjectDao">
+    
+	<sql id="saleProjectDaoColumns">
+		a.projId AS "projId",
+		a.orderId AS"orderId",
+		a.chipTime AS "chipTime",
+		a.lotId AS "lotId",
+		a.lotIssue AS "lotIssue",
+		a.chipMul AS "chipMul",
+		a.chipCount AS "chipCount",
+		a.chipMoney AS "chipMoney",
+		a.bonus AS "bonus",
+		a.realBonus AS "realBonus",
+		a.projState AS "projState",
+		a.billTime AS "billTime",
+		a.prizeTime AS "prizeTime",
+		a.cancelTime AS "cancelTime",
+		l.LotName AS "lotName"
+	</sql>
+	<select id="get" resultType="SaleProject">
+		SELECT 
+			<include refid="saleProjectDaoColumns"/>
+		FROM Sale_Project a
+		WHERE a.projId = #{id}
+	</select>
+	
+	<select id="findList" resultType="SaleProject">
+		SELECT 
+			<include refid="saleProjectDaoColumns"/>
+		FROM Sale_Project a
+		INNER JOIN Sys_LotSet l
+		with (nolock)
+		ON(a.LotID = l.LotID)
+		WHERE 1=1
+		<if test="lotName != null and lotName !=''">
+			AND l.LotName = #{lotName}
+		</if>
+		<if test="projId != null and projId != ''">
+			AND a.projId = #{projId}
+		</if>
+		<if test="orderId != null and orderId !=''">
+			AND a.orderId =#{orderId}
+		</if>
+		<if test=" timeType==1 and beginDate!= null and beginDate !=''">
+			AND a.billTime >#{beginDate}
+		</if>
+		<if test=" timeType==1 and endDate != null and endDate !=''">
+			<![CDATA[
+		      AND a.billTime < #{endDate}
+		    ]]>
+		</if>
+		<if test=" timeType==2 and beginDate!= null and beginDate !=''">
+			AND a.chipTime > #{beginDate}
+		</if>
+		<if test=" timeType==2 and endDate != null and endDate !=''">
+			<![CDATA[
+			AND a.chipTime < #{endDate}
+			]]>
+		</if>
+		<if test=" timeType==3 and beginDate!= null and beginDate !=''">
+			AND a.prizeTime > #{beginDate}
+		</if>
+		<if test=" timeType==3 and endDate != null and endDate !=''">
+			<![CDATA[
+			AND a.prizeTime < #{endDate}
+			]]>
+		</if>
+		<if test="projState != null and projState != '' and projState!=50 and projState!=30 or projState==0" >
+			AND a.projState = #{projState}
+		</if>
+		ORDER BY a.projId DESC
+	</select>
+</mapper>

@@ -1,0 +1,50 @@
+/**
+ * Copyright &copy; 2012-2016 <a href="https://github.com/thinkgem/jeesite">JeeSite</a> All rights reserved.
+ */
+package com.thinkgem.jeesite.modules.terminal.service;
+
+import com.thinkgem.jeesite.common.persistence.Page;
+import com.thinkgem.jeesite.modules.act.entity.ExcelReport;
+import com.thinkgem.jeesite.modules.terminal.entity.TicketInfo;
+import org.springframework.stereotype.Service;
+import java.util.List;
+
+/**
+ * 出票信息Service
+ * @author Matthew
+ * @version 2017-08-04
+ */
+@Service
+public interface TicketInfoService {
+
+	/**
+	 * 分页查询
+	 */
+	Page<TicketInfo> find(Page<TicketInfo> page, TicketInfo ticketInfo);
+
+	/**
+	 * 数据汇总
+	 */
+	Page<TicketInfo> sum(Page<TicketInfo> page, TicketInfo ticketInfo);
+
+	/**
+	 * 查询
+	 */
+	List<TicketInfo> find(TicketInfo ticketInfo);
+
+	/**
+	 * excel创建
+	 */
+	ExcelReport generateExcel(TicketInfo ticketInfo, String title, String fileName);
+
+	/**
+	 * 详情
+	 */
+	TicketInfo getTicket(String id);
+
+	/**
+	 * 导出出票文件txt
+	 */
+	void exportTxt(String fileName,String baseDir);
+
+}

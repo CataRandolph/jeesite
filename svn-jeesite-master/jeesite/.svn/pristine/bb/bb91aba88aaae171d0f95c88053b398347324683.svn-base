@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.thinkgem.jeesite.modules.thirdparty.dal.IssueSaleDao">
+    
+	<sql id="issueSaleDaoColumns">
+		a.lotId AS "lotId",
+		a.lotIssue AS"lotIssue",
+		a.succProjCount AS "succProjCount",
+		a.totalSell AS "totalSell",
+		a.totalFail AS "totalFail",
+		a.totalBonus AS "totalBonus",
+		a.totalRealbonus AS "totalRealbonus",
+		a.totalFailBonus AS "totalFailBonus",
+		a.statTime AS "statTime",
+		a.endDate AS "endDate",
+		l.LotName AS "lotName"
+	</sql>
+	<select id="findList" resultType="IssueSale">
+		SELECT 
+			<include refid="issueSaleDaoColumns"/>
+		FROM Sale_IssueSale a
+		INNER JOIN Sys_LotSet l
+		with (nolock)
+		ON(a.LotID = l.LotID)
+		WHERE 1=1
+		<if test="lotName != null and lotName !=''">
+			AND l.LotName = #{lotName}
+		</if>
+		<if test="lotIssue != null and lotIssue != ''">
+			AND a.lotIssue = #{lotIssue}
+		</if>
+		ORDER BY a.RecID DESC
+	</select>
+</mapper>

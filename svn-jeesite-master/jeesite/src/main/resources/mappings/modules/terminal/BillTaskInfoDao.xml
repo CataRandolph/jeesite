@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.thinkgem.jeesite.modules.terminal.dao.BillTaskInfoDao">
+    
+	<sql id="billTaskInfoDaoColumns">
+		a.taskId AS "taskId",
+		a.macID AS "macID",
+		a.OptId AS "optId",
+		a.LotID AS "lotID",
+		a.biller AS "biller",
+		a.chipMul AS "chipMul",
+		a.chipCount AS "chipCount",
+		a.chipMoney AS "chipMoney",
+		a.billTime AS "billTime",
+		a.downTime AS "downTime",
+		a.userChip AS "userChip",
+		a.lotIssue AS "lotIssue",
+		a.billState AS "billState",
+		a.taskType AS "taskType",
+		a.minMatchId AS "minMatchId",
+		a.billType AS "billType",
+		v.LotName AS "lotName"
+	</sql>
+    
+	<select id="get" resultType="BillTaskInfo">
+		SELECT 
+			<include refid="billTaskInfoDaoColumns"/>
+		FROM Bill_Task a
+		WHERE a.taskId = #{id}
+	</select>
+	
+	<select id="findList" resultType="BillTaskInfo">
+		SELECT 
+			<include refid="billTaskInfoDaoColumns"/>
+		FROM Bill_Task a
+		INNER JOIN Mac_LotView v
+		with (nolock)
+		ON(a.LotID = v.LotID)
+		INNER JOIN Bill_Project b
+		with (nolock)
+		ON(a.OptId = b.OptId)
+		WHERE 1=1
+		<if test="macID != null and macID != ''">
+			AND a.MacID = #{macID}
+		</if>
+		<if test="lotName != null and lotName !=''">
+			AND v.LotName = #{lotName}
+		</if>
+		<if test="optId != null and optId != '' or optId==0">
+			AND a.OptId =#{optId}
+		</if>
+		<if test=" timeType==1 and beginDate!= null and beginDate !=''">
+			AND a.billTime >#{beginDate}
+		</if>
+		<if test=" timeType==1 and endDate != null and endDate !=''">
+			<![CDATA[
+		      AND a.billTime < #{endDate}
+		    ]]>
+		</if>
+		<if test=" timeType==2 and beginDate!= null and beginDate !=''">
+			AND a.downTime > #{beginDate}
+		</if>
+		<if test=" timeType==2 and endDate != null and endDate !=''">
+			<![CDATA[
+			AND a.downTime < #{endDate}
+			]]>
+		</if>
+		<if test="billState != null and billState != '' and billState!=50 and billState!=30 or billState==0" >
+			AND a.billState = #{billState}
+		</if>
+		<if test="billState != null and billState != '' and billState ==30">
+			AND a.billState !=12 AND a.billState !=7
+		</if>
+		<if test="billState != null and billState != '' and billState ==50">
+			AND a.billState !=12
+		</if>
+		ORDER BY a.taskId DESC
+	</select>
+</mapper>

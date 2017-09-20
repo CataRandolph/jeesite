@@ -1,0 +1,82 @@
+package com.thinkgem.jeesite.modules.terminal.web;
+
+import com.thinkgem.jeesite.common.persistence.Page;
+import com.thinkgem.jeesite.common.utils.StringUtils;
+import com.thinkgem.jeesite.common.web.BaseController;
+import com.thinkgem.jeesite.modules.terminal.entity.ExchangeAward;
+import com.thinkgem.jeesite.modules.terminal.entity.FinanceInfo;
+import com.thinkgem.jeesite.modules.terminal.service.FinanceInfoService;
+import com.thinkgem.jeesite.modules.terminal.service.MacManageService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+
+/**
+ * Created by lijunke on 2017/8/14.
+ */
+
+
+@Controller
+@RequestMapping(value = "${adminPath}/terminal/financeInfo")
+public class FinanceInfoController extends BaseController {
+
+
+    @Autowired
+    FinanceInfoService service;
+
+    @Autowired
+    MacManageService macManageService;
+
+    @RequestMapping(value = {"list", ""})
+    public String find(FinanceInfo financeInfo, HttpServletRequest request, HttpServletResponse response, Model model) {
+        String flag= request.getParameter("flag");
+        if(null==flag){
+            financeInfo = new FinanceInfo();
+        }
+        Page<FinanceInfo> page = service.findList(new Page<FinanceInfo>(request, response), financeInfo);
+        ExchangeAward macs = new ExchangeAward();
+        macs.setMacIdList(macManageService.byMacId());
+        model.addAttribute("macId",financeInfo.getMacId());
+        model.addAttribute("macs", macs);
+        model.addAttribute("page", page);
+        return "modules/terminal/financeInfoList";
+    }
+
+
+    /**
+     * 修正页面
+     *
+     * @param macId
+     * @param model
+     * @return
+     */
+    @RequestMapping(value = "correct")
+    public String correct(String macId, String correctType, Model model) {
+        logger.info(macId);
+        if (!StringUtils.isNotBlank(macId)) {
+            return "modules/terminal/financeInfoForm";
+        }
+        FinanceInfo financeInfo = service.get(macId);
+        financeInfo.setCurrentBalance(financeInfo.getBeforeMoney());
+        if (StringUtils.isNotBlank(correctType)) {
+            financeInfo.setCorrectType(Integer.parseInt(correctType));
+        }
+        model.addAttribute("financeInfo", financeInfo);
+        return "modules/terminal/financeInfoForm";
+    }
+
+
+
+    @RequestMapping(value = "save")
+    public String save(FinanceInfo financeInfo,String macId) {
+        logger.info("开始修正数据");
+        service.insert(financeInfo);
+        return "redirect:" + adminPath + "/terminal/financeInfo/";
+    }
+
+}

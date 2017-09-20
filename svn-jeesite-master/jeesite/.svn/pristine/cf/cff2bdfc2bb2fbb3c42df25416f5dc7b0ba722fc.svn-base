@@ -1,0 +1,60 @@
+package com.thinkgem.jeesite.modules.terminal.web;
+
+import com.thinkgem.jeesite.common.persistence.Page;
+import com.thinkgem.jeesite.common.web.BaseController;
+import com.thinkgem.jeesite.modules.act.entity.ExcelReport;
+import com.thinkgem.jeesite.modules.terminal.entity.ExchangeAward;
+import com.thinkgem.jeesite.modules.terminal.service.ExchangeAwardService;
+import com.thinkgem.jeesite.modules.terminal.service.MacManageService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+/**
+ * Created by lijunke on 2017/8/10.
+ */
+
+@Controller
+@RequestMapping(value = "${adminPath}/terminal/exchangeAward")
+public class ExchangeAwardController extends BaseController {
+
+    SimpleDateFormat sdf = new SimpleDateFormat("yyyy_MM_dd-HH_mm_ss");
+
+    @Autowired
+    private ExchangeAwardService exchangeAwardService;
+
+    @Autowired
+    private MacManageService macManageService;
+
+    @Value("${ticket.path}")
+    String path;
+
+    @Value("${expiry.title}")
+    String title;
+
+
+    @RequestMapping(value = {"list", ""})
+    public String find(ExchangeAward exchangeAward,HttpServletRequest request,HttpServletResponse response,Model model){
+        Page<ExchangeAward> page = exchangeAwardService.find(new Page<ExchangeAward>(request,response),exchangeAward);
+        ExchangeAward macs = new ExchangeAward();
+        macs.setMacIdList(macManageService.byMacId());
+        macs.setLotNameList(exchangeAwardService.byLotName());
+        model.addAttribute("macs",macs);
+        model.addAttribute("page",page);
+        return "modules/terminal/exchangeAwardList";
+    }
+
+    @RequestMapping(value ="export")
+    public void export(ExchangeAward exchangeAward, HttpServletRequest request, HttpServletResponse response, Model model) {
+        String date = sdf.format(new Date());
+        String fileName = title+date;
+        ExcelReport ep = exchangeAwardService.generateExcel(exchangeAward,title,fileName);
+        exportExcel(response,ep,fileName,path);
+    }
+}
